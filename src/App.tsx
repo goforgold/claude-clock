@@ -91,7 +91,7 @@ interface HourCell {
   splitToPeak?: boolean; // true = left=off-peak → right=peak
 }
 interface DayRow {
-  label: string; today: boolean; weekend: boolean; hours: HourCell[];
+  label: string; shortLabel: string; today: boolean; weekend: boolean; hours: HourCell[];
 }
 
 function build7Days(now: Date): DayRow[] {
@@ -104,6 +104,9 @@ function build7Days(now: Date): DayRow[] {
 
     const label = new Intl.DateTimeFormat('en-US', {
       timeZone: tz, weekday: 'short', month: 'short', day: 'numeric',
+    }).format(new Date(dayMs))
+    const shortLabel = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, month: 'numeric', day: 'numeric',
     }).format(new Date(dayMs))
 
     // Treat the day as weekend if UTC-noon of that local day falls on Sat/Sun
@@ -137,7 +140,7 @@ function build7Days(now: Date): DayRow[] {
         splitToPeak,
       }
     })
-    return { label, today: d === 0, weekend, hours }
+    return { label, shortLabel, today: d === 0, weekend, hours }
   })
 }
 
@@ -213,7 +216,10 @@ function HeatmapGrid({ days }: { days: DayRow[] }) {
             day.today   ? 'hm-today'   : '',
             day.weekend ? 'hm-weekend' : '',
           ].filter(Boolean).join(' ')}>
-            <div className="hm-label">{day.label}</div>
+            <div className="hm-label">
+              <span className="hm-label-full">{day.label}</span>
+              <span className="hm-label-short">{day.shortLabel}</span>
+            </div>
             {day.hours.map(cell => {
               const pct = cell.splitFrac !== undefined ? Math.round(cell.splitFrac * 100) : undefined
               const splitStyle = pct !== undefined && !cell.past ? {
