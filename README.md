@@ -2,9 +2,9 @@
 
 A terminal-style real-time monitor for Claude's peak usage hours — built with React, TypeScript, and Vite.
 
-**Live:** https://goforgold.github.io/claude-clock/
+**Live:** https://cclock.shashwat.io
 
-![Claude Peak Monitor](public/favicon.svg)
+![Claude Peak Monitor](public/screenshot.png)
 
 ## What it does
 
@@ -16,15 +16,17 @@ This tool shows you:
 - Live countdown to the next peak/off-peak transition
 - Your current usage rate (1× or 2×)
 - A 7-day heatmap of peak vs off-peak hours in your local timezone
-- Split-hour cells for timezones with half-hour/quarter-hour UTC offsets (e.g. IST, NPT, IST)
+- Split-hour cells for timezones with half-hour/quarter-hour UTC offsets (e.g. IST, NPT)
 - ET, UTC, and local time clocks
-- A preview mode to inspect the opposite state's UI
+- Audio alerts on peak transitions
+- Responsive layout for mobile
 
 ## Tech stack
 
 - React 19 + TypeScript
 - Vite 8
 - Pure CSS (no UI library) — CRT/terminal aesthetic
+- Web Audio API for transition chimes
 - All peak logic in UTC to avoid DST edge cases
 
 ## Local development
