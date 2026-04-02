@@ -317,6 +317,10 @@ export default function App() {
     if (!audioEnabled) {
       if (!audioCtxRef.current) audioCtxRef.current = new AudioContext()
       else audioCtxRef.current.resume()
+      // Play a preview so the user hears the sound immediately on enable
+      const ctx = audioCtxRef.current
+      if (peakNow) playPeakStart(ctx)
+      else         playPeakEnd(ctx)
     }
     setAudioEnabled(e => !e)
   }
@@ -389,7 +393,7 @@ export default function App() {
             onClick={toggleAudio}
             title={audioEnabled ? 'Disable audio alerts' : 'Enable audio alerts'}
           >
-            {audioEnabled ? '♪ ON' : '♪ OFF'}
+            {audioEnabled ? '◉ SOUND' : '◎ SOUND'}
           </button>
           <a
             href="https://github.com/goforgold/claude-clock"
