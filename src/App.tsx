@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -253,12 +253,43 @@ function HeatmapGrid({ days }: { days: DayRow[] }) {
   )
 }
 
+// ─── Audio ────────────────────────────────────────────────────────────────────
+
+function playNote(ctx: AudioContext, freq: number, start: number, dur: number) {
+  const osc  = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.type = 'sine'
+  osc.frequency.value = freq
+  gain.gain.setValueAtTime(0, start)
+  gain.gain.linearRampToValueAtTime(0.18, start + 0.015)
+  gain.gain.exponentialRampToValueAtTime(0.001, start + dur)
+  osc.start(start)
+  osc.stop(start + dur)
+}
+
+function playPeakStart(ctx: AudioContext) {
+  const t = ctx.currentTime
+  playNote(ctx, 523, t,        0.28)  // C5
+  playNote(ctx, 784, t + 0.18, 0.38)  // G5  — ascending "alert"
+}
+
+function playPeakEnd(ctx: AudioContext) {
+  const t = ctx.currentTime
+  playNote(ctx, 659, t,        0.28)  // E5
+  playNote(ctx, 392, t + 0.18, 0.42)  // G4  — descending "relief"
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [booted, setBooted] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const [previewFlip, setPreviewFlip] = useState(false)
+  const [audioEnabled, setAudioEnabled] = useState(false)
+  const audioCtxRef  = useRef<AudioContext | null>(null)
+  const prevPeakRef  = useRef<boolean | null>(null)
 
   // Clock tick — every second
   useEffect(() => {
@@ -267,8 +298,28 @@ export default function App() {
     return () => clearInterval(id)
   }, [booted])
 
-  const peakNow    = isPeak(now)
+  const peakNow     = isPeak(now)
   const displayPeak = previewFlip ? !peakNow : peakNow
+
+  // Play audio on real peak transitions (ignores preview flip)
+  useEffect(() => {
+    if (!booted) return
+    if (prevPeakRef.current === null) { prevPeakRef.current = peakNow; return }
+    if (prevPeakRef.current === peakNow) return
+    prevPeakRef.current = peakNow
+    if (audioEnabled && audioCtxRef.current) {
+      if (peakNow) playPeakStart(audioCtxRef.current)
+      else         playPeakEnd(audioCtxRef.current)
+    }
+  }, [peakNow, booted, audioEnabled])
+
+  function toggleAudio() {
+    if (!audioEnabled) {
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext()
+      else audioCtxRef.current.resume()
+    }
+    setAudioEnabled(e => !e)
+  }
 
   // Recompute transitions every minute (or when peak status flips)
   const minuteTick = Math.floor(now.getTime() / 60_000)
@@ -333,9 +384,25 @@ export default function App() {
           <span className="hdr-title">
             CLAUDE_PEAK_MONITOR <span className="dim">v2.0</span>
           </span>
+          <button
+            className={`hdr-btn ${audioEnabled ? 'hdr-btn-active' : ''}`}
+            onClick={toggleAudio}
+            title={audioEnabled ? 'Disable audio alerts' : 'Enable audio alerts'}
+          >
+            {audioEnabled ? '♪ ON' : '♪ OFF'}
+          </button>
+          <a
+            href="https://github.com/goforgold/claude-clock"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hdr-btn hdr-link"
+            title="View source on GitHub"
+          >
+            GITHUB
+          </a>
           {import.meta.env.DEV && (
             <button
-              className={`preview-btn ${previewFlip ? 'preview-active' : ''}`}
+              className={`hdr-btn ${previewFlip ? 'hdr-btn-active' : ''}`}
               onClick={() => setPreviewFlip(f => !f)}
             >
               {previewFlip ? '◉ LIVE' : '◎ PREVIEW'}

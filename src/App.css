@@ -162,31 +162,31 @@ html, body {
   gap: 16px;
 }
 
-.preview-btn {
+.hdr-btn {
   font-family: var(--font);
   font-size: 11px;
   letter-spacing: 0.12em;
   padding: 4px 10px;
   border: 1px solid var(--accent-dim);
   background: transparent;
-  color: var(--accent-dim);
+  color: var(--accent-mid);
   cursor: pointer;
   border-radius: 2px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
-.preview-btn:hover {
+.hdr-btn:hover {
   border-color: var(--accent-mid);
-  color: var(--accent-mid);
+  color: var(--accent);
 }
 
-.preview-btn.preview-active {
+.hdr-btn-active {
   border-color: var(--accent);
   color: var(--accent);
-  text-shadow: var(--glow);
-  box-shadow: 0 0 8px rgba(255,255,255,0.1);
-  animation: pulse 1.8s ease-in-out infinite;
 }
 
 .hdr-title {
